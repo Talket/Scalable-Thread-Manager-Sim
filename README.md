@@ -2,7 +2,7 @@
 
 **Course:** CSE 316 - Operating Systems  
 **Project ID:** 15  
-**Name:** Dobariya Talket 
+**Name:** Dobariya Talket : 
 **Registration ID:** 12402440
 
 ## Project Description
