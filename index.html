@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ThreadFlow | Deep Space Concurrency</title>
+    
+    <!-- Preload Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -370,6 +372,8 @@
     </style>
 </head>
 <body>
+
+    <!-- Navigation -->
     <nav>
         <div class="container nav-inner">
             <div class="logo">ThreadFlow</div>
@@ -382,7 +386,7 @@
         </div>
     </nav>
 
-     <!-- Hero Section -->
+    <!-- Hero Section -->
     <section class="hero">
         <canvas id="galaxy-canvas"></canvas>
         <div class="container hero-content reveal active">
@@ -476,12 +480,53 @@
         </div>
     </section>
 
+    <!-- Code Documentation -->
+    <section id="docs" class="code-section">
+        <div class="container">
+            <div class="code-window reveal">
+                <div class="window-header">
+                    <span>root@threadflow:~/src/core</span>
+                    <span style="color: var(--text-muted)">ThreadPool.cpp</span>
+                </div>
+                <div class="code-content">
+<pre>
+<span class="c-ty">template</span> &lt;<span class="c-ty">typename</span> F, <span class="c-ty">typename</span>... Args&gt;
+<span class="c-kw">auto</span> <span class="c-fn">enqueue</span>(F&& f, Args&&... args) 
+    -> <span class="c-ty">std</span>::<span class="c-ty">future</span>&lt;<span class="c-ty">typename</span> <span class="c-ty">std</span>::<span class="c-ty">result_of</span>&lt;F(Args...)&gt;::type&gt; 
+{
+    <span class="c-kw">using</span> return_type = <span class="c-ty">typename</span> <span class="c-ty">std</span>::<span class="c-ty">result_of</span>&lt;F(Args...)&gt;::type;
+
+    <span class="c-com">// Pack task into a shared pointer for memory safety</span>
+    <span class="c-kw">auto</span> task = <span class="c-ty">std</span>::<span class="c-ty">make_shared</span>&lt; <span class="c-ty">std</span>::<span class="c-ty">packaged_task</span>&lt;return_type()&gt; &gt;(
+        <span class="c-ty">std</span>::<span class="c-ty">bind</span>(<span class="c-ty">std</span>::<span class="c-ty">forward</span>&lt;F&gt;(f), <span class="c-ty">std</span>::<span class="c-ty">forward</span>&lt;Args&gt;(args)...)
+    );
+        
+    <span class="c-ty">std</span>::<span class="c-ty">future</span>&lt;return_type&gt; res = task-><span class="c-fn">get_future</span>();
+    {
+        <span class="c-ty">std</span>::<span class="c-ty">unique_lock</span>&lt;<span class="c-ty">std</span>::<span class="c-ty">mutex</span>&gt; <span class="c-fn">lock</span>(queue_mutex);
+
+        <span class="c-com">// Stop enqueueing if pool is stopped</span>
+        <span class="c-kw">if</span>(stop) <span class="c-kw">throw</span> <span class="c-ty">std</span>::<span class="c-ty">runtime_error</span>(<span class="c-str">"enqueue on stopped ThreadPool"</span>);
+
+        tasks.<span class="c-fn">emplace</span>([task](){ (*task)(); });
+    }
+    condition.<span class="c-fn">notify_one</span>();
+    <span class="c-kw">return</span> res;
+}
+</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <footer>
         <div class="container">
             <p>THREADFLOW v2.0 // EST. 2024</p>
+            <p style="opacity: 0.5;">OPTIMIZED FOR NEURAL INTERFACES</p>
         </div>
     </footer>
 
+    <!-- LOGIC SCRIPT -->
     <script>
         /**
          * ANIMATION CONTROLLER
