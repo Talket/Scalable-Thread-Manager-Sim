@@ -396,6 +396,51 @@
         </div>
     </section>
 
+    <!-- Simulator Section -->
+    <section id="simulator" class="simulator">
+        <div class="container">
+            <div class="section-header reveal" style="margin-bottom: 40px;">
+                <h2 style="font-size: 2rem; font-family: var(--font-code);">THREAD MANAGER V2.0</h2>
+                <p style="color: var(--text-muted);">Real-time visualization of work-stealing algorithms.</p>
+            </div>
+
+            <div class="sim-interface reveal">
+                <!-- Sidebar -->
+                <div class="sim-sidebar">
+                    <div class="control-group">
+                        <label>INJECTION CONTROL</label>
+                        <button class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.8rem; padding: 10px;" onclick="simulator.addTasks(1)">+ SINGLE TASK</button>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 10px; justify-content: center; font-size: 0.8rem; padding: 10px;" onclick="simulator.addTasks(20)">+ BURST INJECTION</button>
+                    </div>
+
+                    <div style="margin-top: auto;">
+                        <div class="stat-box">
+                            <div class="stat-value" id="active-threads-disp">0 / 4</div>
+                            <div class="stat-label">ACTIVE CORES</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="queue-size-disp">0</div>
+                            <div class="stat-label">QUEUE DEPTH</div>
+                        </div>
+                        <div class="stat-box" style="border-left: 2px solid var(--primary);">
+                            <div class="stat-value" id="throughput-disp">0</div>
+                            <div class="stat-label">TASKS / SEC</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Canvas Viewport -->
+                <div class="sim-viewport">
+                    <canvas id="sim-canvas"></canvas>
+                    <div class="sim-overlay">
+                        <div class="status-pill">MAIN_LOOP: RUNNING</div>
+                        <div class="status-pill">RENDER: GPU_ACCEL</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Features -->
     <section id="features" class="features">
         <div class="container">
