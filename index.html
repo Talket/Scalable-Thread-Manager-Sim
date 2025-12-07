@@ -436,5 +436,333 @@
             <p>THREADFLOW v2.0 // EST. 2024</p>
         </div>
     </footer>
+
+    <script>
+        /**
+         * ANIMATION CONTROLLER
+         */
+        const observerOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        /**
+         * GALAXY ENGINE (Mouse + Scroll Reactive Nebula)
+         */
+        class GalaxyEngine {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.stars = [];
+                this.clouds = [];
+                this.mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
+                this.scrollY = 0;
+                
+                this.resize();
+                this.initSpace();
+                
+                window.addEventListener('resize', () => { this.resize(); this.initSpace(); });
+                window.addEventListener('mousemove', (e) => {
+                    this.mouse.x = e.clientX;
+                    this.mouse.y = e.clientY;
+                });
+                window.addEventListener('scroll', () => {
+                    this.scrollY = window.scrollY;
+                });
+                
+                this.animate();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            initSpace() {
+                this.stars = [];
+                this.clouds = [];
+                
+                // Initialize Stars
+                const count = 1000;
+                for(let i=0; i<count; i++) {
+                    this.stars.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        z: Math.random() * 2,
+                        size: Math.random() * 1.5,
+                        opacity: Math.random(),
+                        vel: (Math.random() * 0.5) + 0.1
+                    });
+                }
+
+                // Initialize Nebula Clouds (Mimicking the image)
+                // Colors: Purple, Pink, Deep Blue, Orange-ish Gold
+                const cloudColors = [
+                    { r: 112, g: 0, b: 255 },  // Purple
+                    { r: 255, g: 0, b: 85 },   // Pink
+                    { r: 0, g: 240, b: 255 },  // Cyan
+                    { r: 255, g: 170, b: 0 }   // Gold
+                ];
+
+                for(let i=0; i<15; i++) {
+                    const color = cloudColors[Math.floor(Math.random() * cloudColors.length)];
+                    this.clouds.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        radius: 200 + Math.random() * 400,
+                        color: `rgba(${color.r}, ${color.g}, ${color.b}, 0.15)`,
+                        depth: 0.2 + Math.random() * 0.3 // How much it moves
+                    });
+                }
+            }
+
+            animate() {
+                this.ctx.fillStyle = '#000000';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                const cx = this.canvas.width / 2;
+                const cy = this.canvas.height / 2;
+                
+                // Parallax Inputs
+                const mouseOffsetX = (this.mouse.x - cx) * 0.05;
+                const mouseOffsetY = (this.mouse.y - cy) * 0.05;
+                const scrollOffset = this.scrollY * 0.5; // Scroll speed factor
+
+                // 1. Draw Nebula Clouds
+                this.clouds.forEach(cloud => {
+                    // Clouds move slightly with mouse and UP with scroll
+                    const px = cloud.x + (mouseOffsetX * cloud.depth);
+                    const py = cloud.y + (mouseOffsetY * cloud.depth) - (scrollOffset * cloud.depth * 0.5);
+
+                    // Loop vertical position for infinite scroll feel
+                    const loopedY = (py % (this.canvas.height + 800));
+                    const finalY = loopedY < -400 ? loopedY + this.canvas.height + 800 : loopedY;
+
+                    const grad = this.ctx.createRadialGradient(px, finalY, 0, px, finalY, cloud.radius);
+                    grad.addColorStop(0, cloud.color);
+                    grad.addColorStop(1, 'rgba(0,0,0,0)');
+                    
+                    this.ctx.fillStyle = grad;
+                    this.ctx.beginPath();
+                    this.ctx.arc(px, finalY, cloud.radius, 0, Math.PI*2);
+                    this.ctx.fill();
+                });
+
+                // 2. Draw Stars
+                this.stars.forEach(star => {
+                    // Update star position (gentle drift)
+                    star.x -= star.vel * 0.2; 
+                    if(star.x < 0) star.x = this.canvas.width;
+
+                    // Parallax
+                    const parX = mouseOffsetX * star.z;
+                    const parY = (mouseOffsetY * star.z) - (scrollOffset * star.z);
+
+                    // Loop vertical for stars too
+                    let renderY = (star.y + parY) % this.canvas.height;
+                    if(renderY < 0) renderY += this.canvas.height;
+
+                    // Draw Star
+                    this.ctx.beginPath();
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                    if(Math.random() > 0.995) this.ctx.fillStyle = `rgba(0, 240, 255, 1)`; // Twinkle
+
+                    this.ctx.arc(star.x + parX, renderY, star.size, 0, Math.PI*2);
+                    this.ctx.fill();
+                });
+
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        new GalaxyEngine('galaxy-canvas');
+
+        /**
+         * SIMULATOR LOGIC (Same high-performance core)
+         */
+        class ThreadSimulator {
+            constructor() {
+                this.canvas = document.getElementById('sim-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.width = 0;
+                this.height = 0;
+                this.threads = [];
+                this.queue = [];
+                this.activeTasks = [];
+                this.completedCount = 0;
+                this.startTime = Date.now();
+                this.threadCount = 4;
+                this.coreRadius = 30;
+                
+                this.resize();
+                this.initThreads();
+                this.loop();
+
+                window.addEventListener('resize', () => this.resize());
+            }
+
+            resize() {
+                const parent = this.canvas.parentElement;
+                this.width = parent.clientWidth;
+                this.height = parent.clientHeight;
+                this.canvas.width = this.width;
+                this.canvas.height = this.height;
+                this.initThreads();
+            }
+
+            initThreads() {
+                this.threads = [];
+                const spacing = this.height / (this.threadCount + 1);
+                for(let i=0; i<this.threadCount; i++) {
+                    this.threads.push({
+                        id: i,
+                        x: this.width - 100,
+                        y: spacing * (i + 1),
+                        busy: false,
+                        progress: 0,
+                        pulse: 0
+                    });
+                }
+            }
+
+            addTasks(count) {
+                for(let i=0; i<count; i++) {
+                    this.queue.push({
+                        id: Math.random().toString(36).substr(2, 5),
+                        color: Math.random() > 0.5 ? '#00f0ff' : '#7000ff', // Cyan or Violet
+                        duration: 100 + Math.random() * 200
+                    });
+                }
+                this.updateStats();
+            }
+
+            updateStats() {
+                document.getElementById('queue-size-disp').innerText = this.queue.length;
+                const active = this.threads.filter(t => t.busy).length;
+                document.getElementById('active-threads-disp').innerText = `${active} / ${this.threadCount}`;
+                
+                const elapsed = (Date.now() - this.startTime) / 1000;
+                const throughput = elapsed > 0 ? (this.completedCount / elapsed).toFixed(1) : 0;
+                document.getElementById('throughput-disp').innerText = throughput;
+            }
+
+            loop() {
+                // Clear with slight trail
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+
+                // Draw Threads (Sci-Fi Cores)
+                this.threads.forEach(thread => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(thread.x, thread.y, this.coreRadius, 0, Math.PI*2);
+                    this.ctx.fillStyle = '#111';
+                    this.ctx.fill();
+                    this.ctx.strokeStyle = thread.busy ? '#00f0ff' : '#333';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.stroke();
+
+                    // Text
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.font = '12px JetBrains Mono';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.fillText(`CORE_${thread.id}`, thread.x, thread.y);
+
+                    if(thread.busy) {
+                        thread.pulse += 0.2;
+                        this.ctx.beginPath();
+                        this.ctx.arc(thread.x, thread.y, this.coreRadius + Math.sin(thread.pulse)*5, 0, Math.PI*2);
+                        this.ctx.strokeStyle = `rgba(0, 240, 255, ${0.5 - Math.sin(thread.pulse)*0.3})`;
+                        this.ctx.stroke();
+
+                        // Progress ring
+                        const endAngle = -Math.PI/2 + (Math.PI*2 * thread.progress);
+                        this.ctx.beginPath();
+                        this.ctx.arc(thread.x, thread.y, this.coreRadius + 8, -Math.PI/2, endAngle);
+                        this.ctx.strokeStyle = '#00f0ff';
+                        this.ctx.stroke();
+                    }
+                });
+
+                // Task Logic
+                const idleThreads = this.threads.filter(t => !t.busy);
+                if(this.queue.length > 0 && idleThreads.length > 0) {
+                    const task = this.queue.shift();
+                    const thread = idleThreads[0];
+                    this.activeTasks.push({
+                        taskData: task,
+                        targetThread: thread,
+                        x: 50, y: this.height / 2,
+                        vx: 0, vy: 0,
+                        state: 'traveling'
+                    });
+                    thread.busy = true;
+                    this.updateStats();
+                }
+
+                // Update Tasks
+                for(let i = this.activeTasks.length - 1; i >= 0; i--) {
+                    const p = this.activeTasks[i];
+                    if(p.state === 'traveling') {
+                        const dx = p.targetThread.x - p.x;
+                        const dy = p.targetThread.y - p.y;
+                        const dist = Math.hypot(dx, dy);
+
+                        if(dist < 5) {
+                            p.state = 'processing';
+                            p.targetThread.totalDuration = p.taskData.duration;
+                            p.targetThread.currentDuration = 0;
+                        } else {
+                            p.x += dx * 0.15; // Faster travel
+                            p.y += dy * 0.15;
+                            
+                            this.ctx.fillStyle = p.taskData.color;
+                            this.ctx.beginPath();
+                            this.ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+                            this.ctx.fill();
+                            // Glow
+                            this.ctx.shadowBlur = 15;
+                            this.ctx.shadowColor = p.taskData.color;
+                            this.ctx.fill();
+                            this.ctx.shadowBlur = 0;
+                        }
+                    } else if (p.state === 'processing') {
+                        p.targetThread.currentDuration++;
+                        p.targetThread.progress = p.targetThread.currentDuration / p.targetThread.totalDuration;
+                        if(p.targetThread.currentDuration >= p.targetThread.totalDuration) {
+                            p.targetThread.busy = false;
+                            p.targetThread.progress = 0;
+                            this.completedCount++;
+                            this.activeTasks.splice(i, 1);
+                            this.updateStats();
+                        }
+                    }
+                }
+
+                // Draw Queue
+                this.ctx.strokeStyle = '#333';
+                this.ctx.strokeRect(20, this.height/2 - 30, 60, 60);
+                if(this.queue.length > 0) {
+                    this.ctx.fillStyle = '#00f0ff';
+                    this.ctx.globalAlpha = 0.8;
+                    this.ctx.fillRect(25, this.height/2 - 25, 50, 50);
+                    this.ctx.globalAlpha = 1.0;
+                    this.ctx.fillStyle = '#000';
+                    this.ctx.fillText(this.queue.length, 50, this.height/2);
+                }
+
+                requestAnimationFrame(() => this.loop());
+            }
+        }
+
+        const simulator = new ThreadSimulator();
+
+    </script>
 </body>
 </html>
