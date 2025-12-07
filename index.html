@@ -396,6 +396,41 @@
         </div>
     </section>
 
+    <!-- Features -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="reveal">
+                <h2 style="font-family: var(--font-code);">CORE_ARCHITECTURES</h2>
+            </div>
+            <div class="features-grid">
+                <!-- Feature 1 -->
+                <div class="card reveal" style="transition-delay: 100ms;">
+                    <div class="icon-box">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                    </div>
+                    <h3>ZERO-COPY EXECUTION</h3>
+                    <p style="color: var(--text-muted)">Utilizes r-value references and move semantics to pass tasks into the queue without memory allocation overhead.</p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="card reveal" style="transition-delay: 200ms;">
+                    <div class="icon-box">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h3>RACE-FREE MUTEX</h3>
+                    <p style="color: var(--text-muted)">Implements a custom spinlock for short tasks and a condition variable for long-wait states to minimize context switching.</p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="card reveal" style="transition-delay: 300ms;">
+                    <div class="icon-box">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4m0 5c0 2.21-3.58 4-8 4s-8-1.79-8-4"></path></svg>
+                    </div>
+                    <h3>CACHE LOCALITY</h3>
+                    <p style="color: var(--text-muted)">Thread-local storage ensures that workers access memory closest to their physical core, reducing L3 cache misses.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <footer>
         <div class="container">
             <p>THREADFLOW v2.0 // EST. 2024</p>
